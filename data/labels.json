@@ -1,0 +1,44 @@
+{
+  "batch_normal": null,
+  "batch_ng_pumping_delay": {
+    "kind": "pumping_delay",
+    "sensor_id": "pressure_p1",
+    "phase": "pumping",
+    "windows": [
+      [
+        "2026-06-01 08:07:00",
+        "2026-06-01 08:09:59"
+      ]
+    ]
+  },
+  "batch_ng_pressure_spike": {
+    "kind": "pressure_spike",
+    "sensor_id": "pressure_p1",
+    "phase": "main_dlc",
+    "windows": [
+      [
+        "2026-06-01 08:36:00",
+        "2026-06-01 08:36:29"
+      ],
+      [
+        "2026-06-01 08:43:30",
+        "2026-06-01 08:43:59"
+      ],
+      [
+        "2026-06-01 08:49:45",
+        "2026-06-01 08:50:14"
+      ]
+    ]
+  },
+  "batch_ng_temp_drift": {
+    "kind": "temp_drift",
+    "sensor_id": "temp_chamber",
+    "phase": "main_dlc",
+    "windows": [
+      [
+        "2026-06-01 08:30:00",
+        "2026-06-01 08:54:59"
+      ]
+    ]
+  }
+}

@@ -1,11 +1,11 @@
 # 기술보고서 — DLC 코팅 공정 센서 데이터 기반 규칙 기반 이상치 탐지 프로토타입
 
 > 작성자: 송상준 (ssj.mlboot@gmail.com) · 2026-06-12
-> 본 보고서는 1단계(설계·프로토타입) 시점의 초안이다. `[2단계]` 표시 부분은 구현·검증 완료 후 기술한다.
+> 1단계(설계) 및 2단계(구현·검증) 완료 시점의 보고서이다.
 
 ## 초록
 
-DLC(Diamond-Like Carbon) 코팅은 단일 batch에 8시간 이상이 소요되며, 공정 중 발생한 미세 이상은 batch 종료 후 외관·접착 검사에서 불량(전체의 1~5%)으로 확인되어 큰 손실을 유발한다. 본 연구는 그 첫 단계로, multi-phase 공정 센서 로그를 phase별로 구분하고 고정 임계값·이동평균(±k·σ) 규칙으로 이상치를 탐지하여 시각화하는 프로토타입을 구축한다. 사내 실데이터 대신 공정 구조를 모사한 합성 데이터를 사용하여 재현성을 확보하였다. `[2단계: 탐지 성능 요약 추가]`
+DLC(Diamond-Like Carbon) 코팅은 단일 batch에 8시간 이상이 소요되며, 공정 중 발생한 미세 이상은 batch 종료 후 외관·접착 검사에서 불량(전체의 1~5%)으로 확인되어 큰 손실을 유발한다. 본 연구는 그 첫 단계로, multi-phase 공정 센서 로그를 phase별로 구분하고 고정 임계값·이동평균(±k·σ) 규칙으로 이상치를 탐지하여 시각화하는 프로토타입을 구축한다. 사내 실데이터 대신 공정 구조를 모사한 합성 데이터를 사용하여 재현성을 확보하였다. 합성 batch 4종(정상 1, 이상 3) 검증에서 주입된 이상 5개 구간을 모두 검출하였고 오탐은 0건이었으며, batch 종료 후 검사 대비 19~53분(1시간 축소 모형 기준) 조기에 첫 경보를 생성하였다.
 
 ## 1. 서론
 
@@ -59,30 +59,65 @@ smart-factory-dlc-anomaly-mvp/
 │   ├── generate_data.py    # 합성 batch 생성기
 │   └── main.py             # CLI 엔트리
 ├── tests/test_detect.py    # 단위 테스트
-├── data/                   # 합성 샘플 CSV [2단계]
-└── results/                # 차트·이상치 출력 [2단계]
+├── data/                   # 합성 샘플 CSV 4종 + labels.json
+└── results/                # batch별 차트·이상치 CSV·검증 집계
 ```
 
 ### 3.2 핵심 구현
 
-`[2단계: detect_rolling_sigma 핵심 코드 발췌 및 데이터 흐름도 1점]`
+데이터 흐름은 다음 한 줄로 요약된다: `CSV → load(스키마 검증·정렬) → detect(고정 임계값 + phase별 독립 rolling ±k·σ) → visualize(이상치 CSV·차트)`.
+
+핵심은 phase 경계를 넘지 않는 이동 통계량 계산이다. `groupby(["phase","sensor_id"])`로 phase별 독립 계산하여 단계 전환 오경보를 구조적으로 제거하고, 적용 대상을 자유응답 변수로 한정하여 신호 희석을 방지한다.
+
+```python
+def detect_rolling_sigma(df, config):
+    out = []
+    target = df[df["sensor_id"].isin(config.target_sensors)]  # 자유응답 변수만
+    for (_ph, _sid), g in target.groupby(["phase", "sensor_id"], observed=True):
+        g = g.sort_values("timestamp")
+        w = config.rolling_window                  # 기본 120초
+        roll = g["value"].rolling(w, min_periods=w)
+        mean, std = roll.mean(), roll.std().clip(lower=1e-9)
+        hit = g[(g["value"] - mean).abs() > config.k_sigma * std]  # ±k·σ
+        ...
+```
+
+고정 임계값 규칙은 `{(phase, sensor): (low, high, skip_first_s)}` 사양으로 정의된다. `skip_first_s`는 펌핑 초기처럼 의도적으로 한계를 벗어나는 구간을 판정에서 제외하는 도메인 지식의 반영이다 (예: 펌핑 시작 420초 이후 압력 2.0 Pa 이하 도달 사양).
 
 ## 4. 결과
 
-`[2단계: 합성 batch 4종(정상 1, 이상 3)에 대한 탐지 결과 — 주입 이상 대비 검출 여부·오탐 건수 표, 센서별 차트, 각 결과에 대한 해석]`
+합성 batch 4종(1시간 축소 모형, 1Hz, 5센서)에 대한 탐지 결과는 표 1과 같다. 주입된 이상 5개 구간을 모두 검출하였고, 4종 batch 전체에서 오탐(주입 구간 외 탐지)은 0건이었다.
 
-| 시나리오 | 주입 이상 | 검출 여부 | 오탐 건수 |
-|---|---|---|---|
-| 정상 batch | — | — | `[ ]` |
-| 펌핑 지연 | pumping phase 압력 하강 지연 | `[ ]` | `[ ]` |
-| 압력 스파이크 | main_dlc phase 압력 스파이크 | `[ ]` | `[ ]` |
-| 온도 drift | 챔버 온도 drift 가속 | `[ ]` | `[ ]` |
+표 1. 시나리오별 탐지 결과 (window=120s, k=4)
+
+| 시나리오 | 주입 이상 | 검출 | 탐지 규칙 | 오탐 | 첫 경보 (batch 종료 대비) |
+|---|---|---|---|---|---|
+| 정상 batch | — | — | — | 0건 | — |
+| 펌핑 지연 | 누설 모사: 베이스 진공 미달 (플로어 0.4→4 Pa) | 1/1 구간 | threshold | 0건 | 53분 조기 |
+| 압력 스파이크 | main_dlc 중 압력 스파이크 3회 (+0.18 Pa) | 3/3 구간 | rolling ±k·σ | 0건 | 24분 조기 |
+| 온도 drift | 냉각 이상 모사: 온도 drift 가속 (+6.5°C) | 1/1 구간 | threshold | 0건 | 19분 조기 |
+
+각 결과의 해석은 다음과 같다. 펌핑 지연은 "420초 이후 2.0 Pa 이하" 사양 규칙이 위반 시점부터 즉시(지연 0초) 검출하였다 — 사후 검사라면 53분 뒤에야 인지했을 이상이다. 압력 스파이크(그림 1)는 절대값으로는 운전 범위(0.7 Pa) 안에 있어 임계값 규칙이 침묵했으나, phase 국소 거동 대비 편차를 보는 rolling ±k·σ 규칙이 3회 모두 포착하였다 — PRD 3절 한계 ①(정상 범위 내 이상)에 대한 설계 대응이 작동함을 보여준다. 온도 drift(그림 2)는 사양 한계(37°C) 초과 시점부터 검출되었다.
+
+그림 1. 압력 스파이크 batch — main_dlc 구간의 스파이크 3회 검출 (로그축)
+
+![pressure spike](results/batch_ng_pressure_spike/pressure_p1.png)
+
+그림 2. 온도 drift batch — 사양 한계(37°C) 초과 구간 검출
+
+![temp drift](results/batch_ng_temp_drift/temp_chamber.png)
+
+재현성: 동일 시드에 대해 동일 출력이 나옴을 단위 테스트로 확인하였다(테스트 3종 통과). 검증 집계는 `results/verification_summary.csv` 참조.
 
 ## 5. 고찰
 
-`[2단계: 탐지 성능에 대한 분석, 규칙 기반 접근의 한계 사례, 개발 방법에 대한 회고]`
+**잘된 점.** 정상 batch에서 오탐 0건을 유지하면서 이상 3종을 모두 검출하였다. 펌핑 초기의 의도적 고압 구간(100 Pa)과 5회의 phase 전환에서 오경보가 전혀 발생하지 않은 것은 phase별 독립 계산과 `skip_first_s` 사양 설계의 직접적 효과로, PRD에서 진단한 한계 ②(단계 전환 오경보)가 해소되었음을 보여준다.
 
-예상되는 한계를 미리 기술한다. 규칙 기반 탐지는 단일 변수의 편차만 식별하므로, 개별 변수는 정상 범위에 있으면서 변수 간 결합으로만 드러나는 이상은 탐지하지 못한다. 이는 학습 기반 접근(후속 연구)의 필요성에 대한 실증적 근거가 된다.
+**규칙 기반의 한계 실증.** 온도 drift 시나리오에서 rolling ±k·σ 규칙은 침묵하고 고정 임계값 규칙만 검출에 성공했다. 이동평균이 완만한 drift를 추종해 버리기 때문이다(윈도 120초 동안 변화량 약 0.4°C로 4σ 폭 1.2°C에 미달). 즉 사양 한계가 정의되지 않은 변수에서 진행되는 점진적 drift는 본 도구가 놓칠 수 있으며, 이는 PRD 한계 ①이 부분적으로만 해소됨을 정량적으로 확인한 것이다. 개별 변수가 모두 정상 범위에 있으면서 변수 간 결합으로만 드러나는 패턴(한계 ③)도 원리상 다루지 못한다. 두 한계 모두 전역 정상 분포를 학습하는 후속 연구(one-class 모델)의 필요성에 대한 실증적 근거가 된다.
+
+**개발 방법 회고.** 명세(PRD) 우선으로 골격을 1회 생성한 뒤 함수 단위로 구현한 결과, 전체 재생성 없이 단건 수정 2회(빈 DataFrame concat 경고 처리, ground-truth 라벨 정의 정정)로 구현이 완료되었다. AI 도구는 구현 속도에 기여했으나, 이상 시나리오의 물리적 타당성과 ground-truth 정의 같은 도메인 판단은 사람의 역할로 남았다 — 특히 "냉각 이상은 phase 시작부터 존재하는 결함"이라는 라벨 정의 수정은 도구가 아닌 도메인 지식에서 나왔다.
+
+**의미.** 1시간 축소 모형에서 19~53분 조기 인지는, 비율을 유지한 실제 8시간 공정으로 환산하면 수 시간 단위의 조기 경보에 해당한다. 사후 검사 대비 운영자가 개입할 수 있는 시간 여유를 만든다는 점에서, 규칙 기반 baseline만으로도 현장 가치가 있음을 시사한다.
 
 ## 6. 결론 및 향후 연구
 
@@ -94,17 +129,18 @@ smart-factory-dlc-anomaly-mvp/
 # 1. 환경 설치 (Python 3.10+)
 pip install -r requirements.txt
 
-# 2. 합성 샘플 데이터 생성 [2단계 구현 후]
+# 2. 합성 샘플 데이터 생성 (data/ 폴더에 4종 + labels.json)
 python -m src.generate_data
 
 # 3. 이상치 탐지 실행
-python -m src.main data/batch_ng_pressure_spike.csv --out results/
-#   --window 60   롤링 윈도(초)
-#   --k 3.0       k·σ 배수
+python -m src.main data/batch_ng_pressure_spike.csv --out results/batch_ng_pressure_spike
+#   --window 120  롤링 윈도(초, 기본값)
+#   --k 4.0       k·σ 배수(기본값)
 
 # 4. 결과 확인
-#   results/anomalies.csv      이상치 목록
-#   results/<sensor_id>.png    센서별 차트 (phase 경계·이상점 표시)
+#   results/<batch>/anomalies.csv    이상치 목록
+#   results/<batch>/<sensor_id>.png  센서별 차트 (phase 경계·이상점 표시)
+#   results/verification_summary.csv 4종 batch 검증 집계
 
 # 5. 테스트
 python -m pytest tests/
