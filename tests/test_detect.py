@@ -1,4 +1,4 @@
-"""detect 모듈 단위 테스트 — 뼈대 (구현은 15주차).
+"""detect 모듈 단위 테스트 골격 (구현은 2단계).
 
 실행: python -m pytest tests/
 """
@@ -6,7 +6,7 @@
 
 def test_threshold_flags_out_of_range():
     """고정 임계값을 벗어난 값이 정확히 탐지되는지."""
-    # TODO(15주차): 작은 합성 DataFrame으로 검증
+    # TODO(2단계): 작은 합성 DataFrame으로 검증
     ...
 
 

@@ -6,7 +6,7 @@
   - 자유응답(free-response) 변수: 챔버 압력·온도 → drift 존재 (CV 수 %)
   - 이상 시나리오: 펌핑 지연(누설 모사), 압력 스파이크, 온도 drift 가속
 
-[뼈대 코드] 시그니처만 정의, 구현은 15주차.
+[설계 단계] 인터페이스만 정의하며, 구현은 2단계(구현·검증)에서 진행한다.
 """
 from __future__ import annotations
 
@@ -31,7 +31,7 @@ def generate_normal_batch(duration_s: int = 3600, hz: int = 1,
     Returns:
         컬럼 timestamp, phase, sensor_id, value 의 long-format DataFrame.
     """
-    raise NotImplementedError  # TODO(15주차)
+    raise NotImplementedError  # TODO(2단계)
 
 
 def inject_anomaly(df: pd.DataFrame, kind: str = "pressure_spike",
@@ -41,9 +41,9 @@ def inject_anomaly(df: pd.DataFrame, kind: str = "pressure_spike",
     Args:
         kind: "pumping_delay" | "pressure_spike" | "temp_drift"
     """
-    raise NotImplementedError  # TODO(15주차)
+    raise NotImplementedError  # TODO(2단계)
 
 
 def save_sample_files(out_dir: str = "data") -> list[str]:
     """정상 1개 + 이상 3종 batch CSV를 data/에 저장하고 경로 목록 반환."""
-    raise NotImplementedError  # TODO(15주차)
+    raise NotImplementedError  # TODO(2단계)

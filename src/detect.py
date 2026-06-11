@@ -1,6 +1,6 @@
 """룰 기반 이상치 탐지 모듈 (MVP 기능 2).
 
-[뼈대 코드] 시그니처만 정의, 구현은 15주차.
+[설계 단계] 인터페이스만 정의하며, 구현은 2단계(구현·검증)에서 진행한다.
 """
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ def detect_threshold(df: pd.DataFrame, config: DetectConfig) -> pd.DataFrame:
         컬럼 timestamp, phase, sensor_id, value, rule="threshold",
         threshold(위반한 경계값) 의 DataFrame.
     """
-    raise NotImplementedError  # TODO(15주차)
+    raise NotImplementedError  # TODO(2단계)
 
 
 def detect_rolling_sigma(df: pd.DataFrame, config: DetectConfig) -> pd.DataFrame:
@@ -32,9 +32,9 @@ def detect_rolling_sigma(df: pd.DataFrame, config: DetectConfig) -> pd.DataFrame
 
     phase 경계를 넘어 롤링하지 않도록 phase별로 독립 계산한다.
     """
-    raise NotImplementedError  # TODO(15주차)
+    raise NotImplementedError  # TODO(2단계)
 
 
 def run_all_rules(df: pd.DataFrame, config: DetectConfig) -> pd.DataFrame:
     """모든 규칙을 실행하고 중복 제거 후 timestamp순으로 합친 결과 반환."""
-    raise NotImplementedError  # TODO(15주차)
+    raise NotImplementedError  # TODO(2단계)

@@ -1,10 +1,10 @@
 """CLI 엔트리포인트.
 
-사용 예 (15주차 구현 후):
+사용 예 (구현 완료 후):
     python -m src.generate_data            # 합성 샘플 생성
     python -m src.main data/batch_ng_pressure_spike.csv --out results/
 
-[뼈대 코드] 흐름만 정의, 구현은 15주차.
+[설계 단계] 흐름만 정의하며, 구현은 2단계(구현·검증)에서 진행한다.
 """
 from __future__ import annotations
 
@@ -27,12 +27,12 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     """파이프라인: load → detect → report/plot.
 
-    TODO(15주차): 아래 흐름 구현
+    TODO(2단계): 아래 흐름 구현
       1. df = load_batch_csv(args.csv_path)
       2. anomalies = run_all_rules(df, config)
       3. save_anomaly_report(...) / plot_sensor_timeline(...) / print_summary(...)
     """
-    raise NotImplementedError  # TODO(15주차)
+    raise NotImplementedError  # TODO(2단계)
 
 
 if __name__ == "__main__":
