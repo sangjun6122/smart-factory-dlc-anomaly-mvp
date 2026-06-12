@@ -6,10 +6,18 @@ import os
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 
-UNITS = {"current_spt1": "A", "voltage_bias": "V", "mfc_ar": "sccm",
-         "pressure_p1": "Pa", "temp_chamber": "degC"}
+def _unit(sensor_id: str) -> str:
+    if sensor_id.startswith("press"): return "Pa"
+    if sensor_id.startswith("temp"): return "degC"
+    if sensor_id.startswith("mfc"): return "sccm"
+    if sensor_id.endswith("voltage"): return "V"
+    if sensor_id.endswith("current"): return "A"
+    if sensor_id.endswith("power"): return "kW"
+    if sensor_id.startswith("rotation"): return "rpm"
+    return "-"
 
 
 def plot_sensor_timeline(df: pd.DataFrame, anomalies: pd.DataFrame,
@@ -31,10 +39,10 @@ def plot_sensor_timeline(df: pd.DataFrame, anomalies: pd.DataFrame,
         t0 = gp["timestamp"].iloc[0]
         ax.axvline(t0, color="gray", ls="--", lw=0.6)
         ax.text(t0, ax.get_ylim()[1], f" {ph}", fontsize=7, va="top", color="gray")
-    if sensor_id == "pressure_p1":
+    if sensor_id.startswith("press"):
         ax.set_yscale("log")
     ax.set_xlabel("time")
-    ax.set_ylabel(f"{sensor_id} [{UNITS.get(sensor_id, '-')}]")
+    ax.set_ylabel(f"{sensor_id} [{_unit(sensor_id)}]")
     ax.legend(loc="upper right", fontsize=7)
     fig.tight_layout()
     os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
@@ -58,3 +66,36 @@ def print_summary(anomalies: pd.DataFrame) -> None:
     summary = (anomalies.groupby(["phase", "sensor_id", "rule"], observed=True)
                .size().rename("count").reset_index())
     print(summary.to_string(index=False))
+
+
+def plot_anomaly_heatmap(scores: pd.DataFrame, df: pd.DataFrame,
+                         out_path: str, bin_s: int = 60) -> str:
+    """센서 × 시간 이상 강도 히트맵 — 작업자 pass/stop 판단 보조.
+
+    강도 1.0 = 경보 임계(k·σ). 시간은 bin_s초 단위로 집계(구간 내 최대값).
+    """
+    if scores.empty:
+        return ""
+    s = scores.copy()
+    t0 = s["timestamp"].min()
+    s["bin"] = ((s["timestamp"] - t0).dt.total_seconds() // bin_s).astype(int)
+    grid = (s.pivot_table(index="sensor_id", columns="bin",
+                          values="score", aggfunc="max").fillna(0.0))
+    fig, ax = plt.subplots(figsize=(12, 0.34 * len(grid) + 1.6), dpi=130)
+    im = ax.imshow(np.clip(grid.values, 0, 2.0), aspect="auto",
+                   cmap="YlOrRd", vmin=0, vmax=2.0, interpolation="nearest")
+    ax.set_yticks(range(len(grid.index)))
+    ax.set_yticklabels(grid.index, fontsize=7)
+    # phase 경계 표시
+    for ph, g in df.groupby("phase", observed=True):
+        b = (g["timestamp"].min() - t0).total_seconds() / bin_s
+        ax.axvline(b - 0.5, color="gray", ls="--", lw=0.7)
+        ax.text(b, -0.8, str(ph), fontsize=7, color="gray")
+    ax.set_xlabel(f"time [{bin_s}s bin]")
+    cbar = fig.colorbar(im, ax=ax, fraction=0.025, pad=0.01)
+    cbar.set_label("anomaly intensity (1.0 = alarm threshold)", fontsize=7)
+    fig.tight_layout()
+    os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
+    fig.savefig(out_path)
+    plt.close(fig)
+    return out_path

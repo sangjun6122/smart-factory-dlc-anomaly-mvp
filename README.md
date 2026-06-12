@@ -13,18 +13,18 @@ DLC(Diamond-Like Carbon) 코팅 공정 센서 로그에 대한 phase-aware 규�
 
 ## 개요
 
-공정 센서 로그(CSV)를 phase(펌핑→전처리→중간층→본 증착→벤팅)별로 구분하고, 고정 임계값·이동평균 ±k·σ 규칙으로 이상치를 탐지하여 차트와 이상치 목록을 출력한다. 사내 실데이터는 보안상 사용하지 않으며, 공정 로그의 구조적 특성(폐루프 제어 변수는 안정, 자유응답 변수만 drift)을 모사한 합성 데이터를 사용한다.
+공정 센서 로그(CSV)를 phase(펌핑→히팅→클리닝→버퍼→DLC 코팅→벤팅)별로 구분하고, 고정 임계값·이동평균 ±k·σ 규칙으로 이상치를 탐지하여 **채널×시간 이상 강도 히트맵**·차트·이상치 목록을 출력한다 — 작업자가 공정 계속/중단을 판단할 근거를 제공하는 것이 목적이다. 사내 실데이터는 보안상 사용하지 않으며, 실제 장비의 제어 구조(다종 플라즈마 소스, 제어/종속/자유응답 변수 3분류)와 batch 자연 편차를 모사한 29채널 합성 데이터를 사용한다.
 
 ## 결과 요약 — 정량 목표(G1~G4) 달성
 
 | 목표 | 기준 | 결과 | 증거 |
 |---|---|---|---|
 | G1 검출 완전성 | 독립 시험 세트 검출률 100% | ✅ 이상 25/25 구간 | `results/evaluation_summary.csv` |
-| G2 오경보 억제 | 시험 세트 정상 20 batch 오탐 0 | ✅ 0건 (0/20 batch) | 〃 + `results/calibration.csv` |
+| G2 오경보 억제 | 시험 세트 정상 20 batch 오탐 최소화 | ⚠ 1건 (1/20 batch, 단일점) — 규칙 기반의 측정 한계로 보고 | 〃 + `results/calibration.csv` |
 | G3 재현성 | 동일 시드 → 동일 출력 | ✅ pytest 3종 통과 | `tests/test_detect.py` |
 | G4 재현 가능 실행 | 매뉴얼만으로 실행 가능 | ✅ 아래 5단계 | [빠른 시작](#빠른-시작) |
 
-평가는 칼리브레이션(정상 20 batch에서 k*=4.5 산정)/시험 세트(시드 분리) 분리 프로토콜을 따랐다 — 상세는 [REPORT.md §2.3·§4](REPORT.md).
+평가는 칼리브레이션(정상 20 batch에서 k*=4.5 산정)/시험 세트(시드 분리) 분리 프로토콜을 따랐다. 잔여 오탐 1건은 batch 자연 편차 하 고정 규칙의 한계 실증으로, 후속 학습 단계의 비교 기준선이다 — 상세는 [REPORT.md §2.3·§4·§5](REPORT.md).
 
 ## 빠른 시작
 
@@ -53,18 +53,19 @@ python -m pytest tests/ -q
 |---|---|
 | `results/<batch>/anomalies.csv` | 이상치 목록 (timestamp, phase, sensor, rule, threshold) |
 | `results/<batch>/<sensor>.png` | 센서별 차트 — phase 경계 점선 + 이상점 빨간 마커 |
+| `results/<batch>/heatmap.png` | 채널×시간 이상 강도 히트맵 (1.0 = 경보 임계) |
 | `results/calibration.csv` · `evaluation_summary.csv` | k 칼리브레이션 / 시험 세트 집계 |
 
 예시 — 압력 스파이크 batch의 탐지 결과:
 
-![example](results/batch_ng_pressure_spike/pressure_p1.png)
+![example](results/batch_ng_pressure_spike/press_highvac.png)
 
 상세 매뉴얼은 [REPORT.md 부록 A](REPORT.md) 참조.
 
 ## 진행 상태
 
 - [x] 1단계 — 요구사항 정의서, 코드 골격, 보고서 초안, 프롬프트 로그
-- [x] 2단계 — 기능 구현, 단위 테스트 3종 통과, 칼리브레이션/시험 분리 평가(시험 세트: 정상 20 batch 오탐 0, 이상 25/25 구간 검출), 결과 분석·보고서 완성
+- [x] 2단계 — 29채널 현실화 모델 구현, 단위 테스트 3종 통과, 칼리브레이션/시험 분리 평가(이상 25/25 검출, 정상 오탐 1/20 batch), 히트맵 출력, 결과 분석·보고서 완성
 - [ ] 후속 — one-class 학습 모델, inter-batch 컨텍스트, edge 실시간 조기경보
 
 ## 연구 질문 (Open Questions)

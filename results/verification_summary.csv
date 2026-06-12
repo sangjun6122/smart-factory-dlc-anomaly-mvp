@@ -1,5 +1,5 @@
-batch,검출,구간 내,오탐,첫 경보,종료 대비 조기
+batch,검출,구간 내,오탐,종료 대비 조기,검출 채널
 batch_normal,정상,—,0,—,—
-batch_ng_pumping_delay,1/1,180,0,08:07:00,53분
-batch_ng_pressure_spike,3/3,35,0,08:36:03,24분
-batch_ng_temp_drift,1/1,758,0,08:40:38,19분
+batch_ng_pumping_delay,1/1,60,0,51분,press_highvac
+batch_ng_pressure_spike,3/3,78,0,22분,"pecvd_power, pecvd_voltage, press_highvac"
+batch_ng_temp_drift,1/1,177,0,7분,temp_substrate

@@ -6,7 +6,7 @@ import pandas as pd
 REQUIRED_COLUMNS = ["timestamp", "phase", "sensor_id", "value"]
 
 # DLC 공정 단계 (실제 공정 순서 모사)
-PHASES = ["pumping", "pretreatment", "interlayer", "main_dlc", "venting"]
+PHASES = ["pumping", "heating", "cleaning", "buffer", "dlc_coating", "venting"]
 
 
 def load_batch_csv(path: str) -> pd.DataFrame:

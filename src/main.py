@@ -9,9 +9,11 @@ from __future__ import annotations
 import argparse
 import os
 
-from src.detect import DetectConfig, run_all_rules
+from src.detect import (FREE_RESPONSE_SENSORS, DetectConfig, anomaly_scores,
+                        run_all_rules)
 from src.load import load_batch_csv, validate_schema
-from src.visualize import plot_sensor_timeline, print_summary, save_anomaly_report
+from src.visualize import (plot_anomaly_heatmap, plot_sensor_timeline,
+                           print_summary, save_anomaly_report)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -33,7 +35,10 @@ def main(argv: list[str] | None = None) -> int:
     anomalies = run_all_rules(df, config)
     os.makedirs(args.out, exist_ok=True)
     save_anomaly_report(anomalies, os.path.join(args.out, "anomalies.csv"))
-    for sensor in df["sensor_id"].unique():
+    scores = anomaly_scores(df, config)
+    plot_anomaly_heatmap(scores, df, os.path.join(args.out, "heatmap.png"))
+    plot_sensors = sorted(set(FREE_RESPONSE_SENSORS) | set(anomalies["sensor_id"]))
+    for sensor in plot_sensors:   # 자유응답 변수 + 이상 검출 센서만 차트 생성
         plot_sensor_timeline(df, anomalies, sensor,
                              os.path.join(args.out, f"{sensor}.png"))
     print(f"[{os.path.basename(args.csv_path)}] 이상치 {len(anomalies)}건")

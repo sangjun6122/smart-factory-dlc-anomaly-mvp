@@ -17,19 +17,19 @@ def _frame(phase, sensor, values, t0="2026-06-01 08:00:00"):
 
 def test_threshold_flags_out_of_range():
     """고정 임계값을 벗어난 값이 정확히 탐지되는지 (skip_first_s 포함)."""
-    vals = [5.0] * 500 + [3.0] * 100   # 420초 이후에도 2.0 Pa 초과
-    df = _frame("pumping", "pressure_p1", vals)
-    cfg = DetectConfig(abs_limits={("pumping", "pressure_p1"): (None, 2.0, 420)})
+    vals = [5.0] * 600                 # 540초 이후에도 0.2 Pa 초과
+    df = _frame("pumping", "press_highvac", vals)
+    cfg = DetectConfig(abs_limits={("pumping", "press_highvac"): (None, 0.2, 540)})
     hits = detect_threshold(df, cfg)
-    assert len(hits) == 180            # 420초 이후 전부
+    assert len(hits) == 60             # 540초 이후 전부
     assert (hits["rule"] == "threshold").all()
 
 
 def test_rolling_sigma_respects_phase_boundary():
     """롤링 계산이 phase 경계를 넘지 않는지 — 단계 전환 점프는 오경보가 아니어야 한다."""
     rng = np.random.default_rng(0)
-    a = _frame("pumping", "pressure_p1", 1.0 + rng.normal(0, 0.01, 300))
-    b = _frame("main_dlc", "pressure_p1", 100.0 + rng.normal(0, 0.01, 300),
+    a = _frame("pumping", "press_highvac", 1.0 + rng.normal(0, 0.01, 300))
+    b = _frame("dlc_coating", "press_highvac", 100.0 + rng.normal(0, 0.01, 300),
                t0="2026-06-01 08:05:00")
     df = pd.concat([a, b], ignore_index=True)
     cfg = DetectConfig(rolling_window=120, k_sigma=4.0)

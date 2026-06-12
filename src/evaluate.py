@@ -20,17 +20,16 @@ from src.generate_data import generate_normal_batch, inject_anomaly
 CALIB_SEEDS = range(42, 62)        # 칼리브레이션: 정상 20
 TEST_NORMAL_SEEDS = range(100, 120)  # 시험: 정상 20 (시드 분리)
 TEST_ANOMALY_SEEDS = range(200, 205)  # 시험: 이상 3종 × 5시드
-K_GRID = [3.0, 3.5, 4.0, 4.5, 5.0]
+K_GRID = [3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0]
 ANOMALY_KINDS = ["pumping_delay", "pressure_spike", "temp_drift"]
 
 
 def calibrate() -> tuple[float, pd.DataFrame]:
     """칼리브레이션 세트에서 오탐 0을 만족하는 최소 k를 산정한다."""
+    batches = [generate_normal_batch(seed=s) for s in CALIB_SEEDS]  # 1회 생성·재사용
     rows = []
     for k in K_GRID:
-        total = sum(len(run_all_rules(generate_normal_batch(seed=s),
-                                      DetectConfig(k_sigma=k)))
-                    for s in CALIB_SEEDS)
+        total = sum(len(run_all_rules(b, DetectConfig(k_sigma=k))) for b in batches)
         rows.append({"k": k, "calib_fp_total": total,
                      "calib_batches": len(list(CALIB_SEEDS))})
     table = pd.DataFrame(rows)
