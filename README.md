@@ -15,16 +15,40 @@ DLC(Diamond-Like Carbon) 코팅 공정 센서 로그에 대한 phase-aware 규�
 
 공정 센서 로그(CSV)를 phase(펌핑→전처리→중간층→본 증착→벤팅)별로 구분하고, 고정 임계값·이동평균 ±k·σ 규칙으로 이상치를 탐지하여 차트와 이상치 목록을 출력한다. 사내 실데이터는 보안상 사용하지 않으며, 공정 로그의 구조적 특성(폐루프 제어 변수는 안정, 자유응답 변수만 drift)을 모사한 합성 데이터를 사용한다.
 
-## 실행
+## 빠른 시작
+
+**실행 환경**: Python 3.10+ (의존성: pandas, matplotlib, pytest)
 
 ```bash
+# 1. 설치
 pip install -r requirements.txt
-python -m src.generate_data                                  # 합성 샘플 생성
+
+# 2. 합성 샘플 데이터 생성 → data/ 에 CSV 4종 + labels.json
+python -m src.generate_data
+
+# 3. 이상치 탐지 실행
 python -m src.main data/batch_ng_pressure_spike.csv --out results/batch_ng_pressure_spike
-python -m src.evaluate                                       # 칼리브레이션/시험 평가
+
+# 4. 평가 프로토콜 (칼리브레이션 → 독립 시험 세트)
+python -m src.evaluate
+
+# 5. 테스트
+python -m pytest tests/ -q
 ```
 
-상세는 [REPORT.md 부록 A](REPORT.md) 참조.
+**기대 출력**
+
+| 경로 | 내용 |
+|---|---|
+| `results/<batch>/anomalies.csv` | 이상치 목록 (timestamp, phase, sensor, rule, threshold) |
+| `results/<batch>/<sensor>.png` | 센서별 차트 — phase 경계 점선 + 이상점 빨간 마커 |
+| `results/calibration.csv` · `evaluation_summary.csv` | k 칼리브레이션 / 시험 세트 집계 |
+
+예시 — 압력 스파이크 batch의 탐지 결과:
+
+![example](results/batch_ng_pressure_spike/pressure_p1.png)
+
+상세 매뉴얼은 [REPORT.md 부록 A](REPORT.md) 참조.
 
 ## 진행 상태
 
