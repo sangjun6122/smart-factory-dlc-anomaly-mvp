@@ -1,5 +1,6 @@
 # smart-factory-dlc-anomaly-mvp
 
+> **Smart Factory Domain Final Project** — AI Coding Tools 기반 수행
 > https://github.com/sangjun6122/smart-factory-dlc-anomaly-mvp
 
 DLC(Diamond-Like Carbon) 코팅 공정 센서 로그에 대한 phase-aware 규칙 기반 이상치 탐지 프로토타입. 8시간 이상 소요되는 코팅 batch의 불량이 종료 후 검사에서야 발견되는 문제에 대한 연구의 1단계(설계·프로토타입) 산출물이며, 후속 학습 기반 탐지 연구의 비교 기준(baseline)으로 활용한다. 문제 정의(PRD)부터 구현·검증까지 AI 코딩 도구 기반 워크플로(vibe coding)로 수행하고 전 과정을 기록한다.
@@ -76,4 +77,4 @@ python -m pytest tests/ -q
 
 ## AI 도구 사용 명시
 
-**100% 바이브 코딩**: 본 저장소의 모든 코드는 AI 코딩 도구(Claude)가 생성했으며, 저자는 코드를 직접 작성하지 않았다. 저자의 역할은 문제 정의·명세(PRD)·리뷰·도메인 판단·검증 판정이다. 전 과정의 프롬프트와 판단 기록은 [PROMPTS.md](PROMPTS.md), 항목별 기여도는 [REPORT.md 부록 B](REPORT.md) 참조.
+본 프로젝트는 AI Coding Tool 중심의 vibe coding 방식으로 수행하였다. **코드 생성은 AI(Claude)가 담당**하였고, **저자는 문제 정의, 도메인 지식 제공, 설계 결정, 검증 및 결과 해석을 담당**하였다. 전 과정의 프롬프트·판단 기록은 [PROMPTS.md](PROMPTS.md), 항목별 기여도 표는 [REPORT.md 부록 B](REPORT.md) 참조.
