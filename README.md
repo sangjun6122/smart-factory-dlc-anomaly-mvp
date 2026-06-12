@@ -8,7 +8,8 @@ DLC(Diamond-Like Carbon) 코팅 공정 센서 로그에 대한 phase-aware 규�
 |---|---|
 | [PRD.md](PRD.md) | 요구사항 정의서 (문제의 본질·기존 한계·해결 방법·검증 계획) |
 | [REPORT.md](REPORT.md) | 기술보고서 (사용 매뉴얼·분석 포함) |
-| [PROMPTS.md](PROMPTS.md) | AI 도구 활용 기록 (프롬프트 로그) |
+| [PROMPTS.md](PROMPTS.md) | 바이브 코딩 실행 전략(3층 설계·에이전트·단계별 프롬프트) + 실행 로그 |
+| [CLAUDE.md](CLAUDE.md) / [AGENTS.md](AGENTS.md) | 도구별 상주 컨텍스트 (프로젝트 메모리 / 교차 검토 지침) |
 
 ## 개요
 
