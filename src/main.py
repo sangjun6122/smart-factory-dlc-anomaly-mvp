@@ -19,7 +19,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("csv_path", help="입력 공정 로그 CSV")
     parser.add_argument("--out", default="results", help="출력 폴더")
     parser.add_argument("--window", type=int, default=120, help="롤링 윈도(초)")
-    parser.add_argument("--k", type=float, default=4.0, help="k·σ 배수")
+    parser.add_argument("--k", type=float, default=4.5, help="k·σ 배수 (칼리브레이션 산정값)")
     return parser
 
 

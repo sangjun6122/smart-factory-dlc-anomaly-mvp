@@ -12,6 +12,7 @@ DLC 코팅 공정 센서 이상 탐지 MVP. **명세의 유일한 진실 원천(
 2. ±k·σ 규칙은 자유응답 변수(`pressure_p1`, `temp_chamber`)에만 적용 (정보 비대칭 설계)
 3. 시드 42 고정 — 동일 입력 → 동일 출력 (재현성 G3)
 4. 의존성은 pandas/matplotlib만. 실데이터·고객 정보 절대 포함 금지
+5. 탐지 파라미터(k=4.5)는 칼리브레이션 세트에서만 산정 — 시험 세트로 튜닝 금지(데이터 누수)
 
 ## 명령어
 
@@ -19,6 +20,7 @@ DLC 코팅 공정 센서 이상 탐지 MVP. **명세의 유일한 진실 원천(
 python -m pytest tests/ -q                  # 단위 테스트
 python -m src.generate_data                 # 합성 데이터 4종 + labels.json
 python -m src.main data/<batch>.csv --out results/<batch>   # 파이프라인
+python -m src.evaluate                      # 칼리브레이션/시험 세트 평가
 ```
 
 ## 게이트 — 이 순서를 통과해야 다음 단계로 진행

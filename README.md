@@ -20,7 +20,8 @@ DLC(Diamond-Like Carbon) 코팅 공정 센서 로그에 대한 phase-aware 규�
 ```bash
 pip install -r requirements.txt
 python -m src.generate_data                                  # 합성 샘플 생성
-python -m src.main data/batch_ng_pressure_spike.csv --out results/
+python -m src.main data/batch_ng_pressure_spike.csv --out results/batch_ng_pressure_spike
+python -m src.evaluate                                       # 칼리브레이션/시험 평가
 ```
 
 상세는 [REPORT.md 부록 A](REPORT.md) 참조.
@@ -28,7 +29,7 @@ python -m src.main data/batch_ng_pressure_spike.csv --out results/
 ## 진행 상태
 
 - [x] 1단계 — 요구사항 정의서, 코드 골격, 보고서 초안, 프롬프트 로그
-- [x] 2단계 — 기능 구현, 단위 테스트 3종 통과, 합성 batch 4종 검증(이상 5/5 구간 검출·오탐 0건), 결과 분석·보고서 완성
+- [x] 2단계 — 기능 구현, 단위 테스트 3종 통과, 칼리브레이션/시험 분리 평가(시험 세트: 정상 20 batch 오탐 0, 이상 25/25 구간 검출), 결과 분석·보고서 완성
 - [ ] 후속 — one-class 학습 모델, inter-batch 컨텍스트, edge 실시간 조기경보
 
 ## 연구 질문 (Open Questions)

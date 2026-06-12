@@ -26,7 +26,7 @@ FREE_RESPONSE_SENSORS = ["pressure_p1", "temp_chamber"]
 class DetectConfig:
     """탐지 파라미터. phase·센서별로 다르게 줄 수 있다."""
     rolling_window: int = 120         # 이동평균 윈도 (초)
-    k_sigma: float = 4.0              # 이동평균 ±k·σ 배수
+    k_sigma: float = 4.5              # 이동평균 ±k·σ 배수 (칼리브레이션 세트에서 산정)
     abs_limits: dict = field(default_factory=lambda: dict(DEFAULT_LIMITS))
     target_sensors: list = field(default_factory=lambda: list(FREE_RESPONSE_SENSORS))
 

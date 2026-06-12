@@ -1,5 +1,5 @@
-batch,검출,구간 내 탐지점,오탐,첫 경보,batch 종료 대비 조기
-batch_normal,정상 (이상 미주입),—,0,—,—
-batch_ng_pumping_delay,1/1 구간 검출,180,0,08:07:00,53분
-batch_ng_pressure_spike,3/3 구간 검출,39,0,08:36:03,24분
-batch_ng_temp_drift,1/1 구간 검출,758,0,08:40:38,19분
+batch,검출,구간 내,오탐,첫 경보,종료 대비 조기
+batch_normal,정상,—,0,—,—
+batch_ng_pumping_delay,1/1,180,0,08:07:00,53분
+batch_ng_pressure_spike,3/3,35,0,08:36:03,24분
+batch_ng_temp_drift,1/1,758,0,08:40:38,19분
