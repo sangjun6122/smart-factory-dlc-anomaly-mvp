@@ -75,4 +75,4 @@ python -m pytest tests/ -q
 
 ## AI 도구 사용 명시
 
-설계 문서·코드 골격·문서 초안 작성에 Claude(Cowork)를 사용하였다. 문제 정의·범위 결정·검증은 저자가 수행하였다. 상세는 [PROMPTS.md](PROMPTS.md) 참조.
+**100% 바이브 코딩**: 본 저장소의 모든 코드는 AI 코딩 도구(Claude)가 생성했으며, 저자는 코드를 직접 작성하지 않았다. 저자의 역할은 문제 정의·명세(PRD)·리뷰·도메인 판단·검증 판정이다. 전 과정의 프롬프트와 판단 기록은 [PROMPTS.md](PROMPTS.md), 항목별 기여도는 [REPORT.md 부록 B](REPORT.md) 참조.
